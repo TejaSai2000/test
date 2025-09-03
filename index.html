@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopEasy — Demo Shopping App</title>
+  <style>
+    :root{
+      --bg:#0f172a;          /* slate-900 */
+      --panel:#111827;       /* gray-900 */
+      --muted:#1f2937;       /* gray-800 */
+      --soft:#374151;        /* gray-700 */
+      --text:#e5e7eb;        /* gray-200 */
+      --sub:#9ca3af;         /* gray-400 */
+      --brand:#22c55e;       /* green-500 */
+      --brand-2:#14b8a6;     /* teal-500 */
+      --accent:#60a5fa;      /* blue-400 */
+      --danger:#ef4444;      /* red-500 */
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background: radial-gradient(1400px 800px at 15% -10%, #1e293b 0%, var(--bg) 60%);
+      color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    a{color:inherit}
+    .container{max-width:1200px; margin:0 auto; padding:24px}
+    header{
+      position:sticky; top:0; z-index:50; backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(17,24,39,.9), rgba(17,24,39,.6));
+      border-bottom:1px solid rgba(255,255,255,.06)
+    }
+    .hdr{display:flex; align-items:center; gap:16px; padding:14px 24px}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px}
+    .logo{width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, var(--brand), var(--brand-2)); display:grid; place-items:center; box-shadow:var(--shadow)}
+    .logo svg{filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}
+    .search{flex:1; display:flex; gap:8px}
+    .search input{flex:1; background:var(--muted); color:var(--text); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px 14px; outline:none}
+    .iconbtn{background:var(--brand); color:#04120b; border:none; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700}
+    .iconbtn.secondary{background:var(--soft); color:var(--text)}
+    .toolbar{display:flex; gap:10px; align-items:center}
+    .pill{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); padding:10px 12px; border-radius:999px}
+
+    /* layout */
+    .grid{display:grid; grid-template-columns: 280px 1fr; gap:20px}
+    @media (max-width: 960px){
+      .grid{grid-template-columns: 1fr}
+      aside{order:2}
+    }
+
+    /* filters */
+    aside{
+      background:linear-gradient(180deg, rgba(31,41,55,.6), rgba(17,24,39,.8));
+      padding:18px; border-radius:var(--radius); box-shadow:var(--shadow);
+      border:1px solid rgba(255,255,255,.06)
+    }
+    .section{margin-bottom:16px}
+    .section h3{margin:0 0 10px 0; font-size:14px; text-transform:uppercase; letter-spacing:.12em; color:var(--sub)}
+    .chips{display:flex; flex-wrap:wrap; gap:8px}
+    .chip{padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.05); cursor:pointer; user-select:none}
+    .chip.active{background:linear-gradient(135deg, rgba(34,197,94,.25), rgba(20,184,166,.25)); border-color: rgba(34,197,94,.6)}
+    .range{display:flex; gap:10px; align-items:center}
+    input[type="range"]{width:100%}
+    .swatches{display:flex; flex-wrap:wrap; gap:8px}
+    .swatch{width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,.35); cursor:pointer; box-shadow: inset 0 0 0 2px rgba(0,0,0,.25)}
+    .swatch.active{outline:2px solid var(--accent)}
+
+    /* products */
+    main{min-height:60vh}
+    .products{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:18px}
+    @media (max-width: 1100px){.products{grid-template-columns: repeat(2, 1fr)}}
+    @media (max-width: 680px){.products{grid-template-columns: 1fr}}
+
+    .card{
+      position:relative; background:linear-gradient(180deg, rgba(2,6,23,.8), rgba(15,23,42,.9));
+      border:1px solid rgba(255,255,255,.08); border-radius:18px; overflow:hidden; box-shadow:var(--shadow)
+    }
+    .card img{width:100%; height:220px; object-fit:cover; display:block}
+    .card .p{padding:14px}
+    .row{display:flex; justify-content:space-between; align-items:center; gap:10px}
+    .price{font-weight:800}
+    .brandtxt{color:var(--sub); font-size:12px}
+    .stars{color:#fbbf24}
+
+    .size-select, .qty-select{
+      width:100%; background:var(--muted); color:var(--text); border:1px solid rgba(255,255,255,.1);
+      border-radius:10px; padding:8px 10px
+    }
+    .addbtn{width:100%; margin-top:10px; background:linear-gradient(135deg, var(--brand), var(--brand-2)); border:none; color:#052012; font-weight:800; padding:10px 12px; border-radius:12px; cursor:pointer}
+
+    /* cart */
+    .cart-drawer{position:fixed; right:0; top:0; bottom:0; width:360px; max-width:90vw; transform: translateX(100%);
+      transition:transform .25s ease; background:var(--panel); border-left:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); z-index:100}
+    .cart-drawer.open{transform: translateX(0)}
+    .cart-h{display:flex; align-items:center; justify-content:space-between; padding:14px; border-bottom:1px solid rgba(255,255,255,.08)}
+    .cart-list{max-height:60vh; overflow:auto; padding:10px}
+    .cart-item{display:grid; grid-template-columns:64px 1fr auto; gap:10px; align-items:center; padding:8px; border-bottom:1px dashed rgba(255,255,255,.08)}
+    .cart-item img{width:64px; height:64px; object-fit:cover; border-radius:8px}
+    .cart-foot{position:absolute; bottom:0; left:0; right:0; padding:14px; border-top:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg, rgba(2,6,23,.4), rgba(2,6,23,.9))}
+    .qty{display:flex; align-items:center; gap:6px}
+    .qty button{background:var(--soft); color:var(--text); border:none; width:28px; height:28px; border-radius:8px; cursor:pointer}
+    .checkout{width:100%; margin-top:10px; background:linear-gradient(135deg, var(--accent), var(--brand)); border:none; color:#05121a; font-weight:800; padding:12px; border-radius:12px; cursor:pointer}
+
+    .empty{padding:30px; text-align:center; color:var(--sub)}
+
+    /* badges */
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:999px; font-size:12px}
+
+    /* helper */
+    .fade-in{animation:fade .35s ease}
+    @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hdr container">
+      <div class="brand">
+        <div class="logo" aria-label="logo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3l3.5 7h7l-5.5 4 2 7-7-4-7 4 2-7L1.5 10h7L12 3z" fill="white"/>
+          </svg>
+        </div>
+        <div>
+          <div>ShopEasy</div>
+          <small class="brandtxt">HTML • CSS • JS</small>
+        </div>
+      </div>
+      <div class="search">
+        <input id="search" placeholder="Search products, brands, categories…" />
+        <button class="iconbtn secondary" id="clearFilters">Clear</button>
+      </div>
+      <div class="toolbar">
+        <span class="pill" id="resultsCount">0 items</span>
+        <button class="iconbtn" id="openCart">🛒 <span id="cartCount">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container grid" style="margin-top:20px">
+    <aside>
+      <div class="section">
+        <h3>Category</h3>
+        <div id="catChips" class="chips"></div>
+      </div>
+      <div class="section">
+        <h3>Price</h3>
+        <div class="range">
+          <input id="priceRange" type="range" min="0" max="200" value="200" step="1"/>
+          <span id="priceLabel" class="pill">Up to $200</span>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Color</h3>
+        <div id="colorSwatches" class="swatches"></div>
+      </div>
+      <div class="section">
+        <h3>Size</h3>
+        <div id="sizeChips" class="chips"></div>
+      </div>
+      <div class="section">
+        <h3>Sort by</h3>
+        <select id="sort" class="size-select">
+          <option value="recommend">Recommended</option>
+          <option value="price-asc">Price: Low → High</option>
+          <option value="price-desc">Price: High → Low</option>
+          <option value="rating-desc">Rating: High → Low</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+    </aside>
+
+    <main>
+      <div id="badges" class="chips" style="margin-bottom:12px"></div>
+      <section id="products" class="products"></section>
+    </main>
+  </div>
+
+  <!-- CART DRAWER -->
+  <div id="cart" class="cart-drawer" aria-live="polite">
+    <div class="cart-h">
+      <strong>My Cart</strong>
+      <button id="closeCart" class="iconbtn secondary">✕</button>
+    </div>
+    <div id="cartList" class="cart-list"></div>
+    <div class="cart-foot">
+      <div class="row" style="margin-bottom:8px">
+        <span class="sub">Subtotal</span>
+        <strong id="subtotal">$0.00</strong>
+      </div>
+      <button class="checkout" id="checkoutBtn">Checkout</button>
+      <div class="brandtxt" style="margin-top:6px">Demo only — no payment processed</div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Demo Catalog -----------------------------------------------
+    const PRODUCTS = [
+      { id:"sneaker-01", name:"Air Glide Runner", brand:"SkyStep", category:"Shoes", price:79.99, rating:4.5, colors:["Black","White","Volt"], sizes:["7","8","9","10","11"], image:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1400&auto=format&fit=crop", stock:42, added:"2025-08-12" },
+      { id:"tee-01", name:"Everyday Tee", brand:"Cotton&Co", category:"Apparel", price:19.5, rating:4.2, colors:["Navy","White","Maroon"], sizes:["S","M","L","XL"], image:"https://images.unsplash.com/photo-1520975682031-a7c6c5aab870?q=80&w=1400&auto=format&fit=crop", stock:120, added:"2025-07-20" },
+      { id:"hoodie-01", name:"Fleece Zip Hoodie", brand:"Northway", category:"Apparel", price:49.0, rating:4.6, colors:["Charcoal","Olive"], sizes:["S","M","L","XL"], image:"https://images.unsplash.com/photo-1544971581-2ca9b0586e8f?q=80&w=1400&auto=format&fit=crop", stock:60, added:"2025-03-05" },
+      { id:"watch-01", name:"Minimal Field Watch", brand:"TIMELN", category:"Accessories", price:129.0, rating:4.8, colors:["Black","Tan"], sizes:["One Size"], image:"https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=1400&auto=format&fit=crop", stock:25, added:"2025-08-26" },
+      { id:"bag-01", name:"Urban Daypack", brand:"TrailCo", category:"Accessories", price:69.0, rating:4.4, colors:["Olive","Sand","Black"], sizes:["18L","22L"], image:"https://images.unsplash.com/photo-1520975867597-0f1d6a0e6f48?q=80&w=1400&auto=format&fit=crop", stock:48, added:"2025-04-11" },
+      { id:"cap-01", name:"5-Panel Cap", brand:"Headway", category:"Accessories", price:16.0, rating:4.0, colors:["Forest","Navy","Rust"], sizes:["One Size"], image:"https://images.unsplash.com/photo-1520971347561-6237cc6d76b8?q=80&w=1400&auto=format&fit=crop", stock:90, added:"2025-05-17" },
+      { id:"boot-01", name:"Hike Pro Mid", brand:"Terra", category:"Shoes", price:119.0, rating:4.7, colors:["Brown","Black"], sizes:["7","8","9","10","11","12"], image:"https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1400&auto=format&fit=crop", stock:33, added:"2025-02-10" },
+      { id:"dress-01", name:"Rib Knit Dress", brand:"Linea", category:"Apparel", price:59.0, rating:4.3, colors:["Black","Sage"], sizes:["XS","S","M","L"], image:"https://images.unsplash.com/photo-1519741495925-50e13d7b0a5a?q=80&w=1400&auto=format&fit=crop", stock:41, added:"2025-06-28" }
+    ];
+
+    // ---------- State -------------------------------------------------------
+    const state = {
+      query: "",
+      category: null,
+      color: null,
+      size: null,
+      maxPrice: 200,
+      sort: "recommend",
+      cart: JSON.parse(localStorage.getItem("demo-cart") || "{}") // {id: {qty, color, size}}
+    };
+
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+
+    // ---------- UI Builders -------------------------------------------------
+    function setResultsCount(n){ $('#resultsCount').textContent = `${n} item${n===1?'':'s'}` }
+
+    function buildFilters(){
+      // categories
+      const cats = [...new Set(PRODUCTS.map(p=>p.category))];
+      const catWrap = $('#catChips'); catWrap.innerHTML = '';
+      [{label:'All', value:null}, ...cats.map(c=>({label:c, value:c}))].forEach(c=>{
+        const div = document.createElement('div');
+        div.className = 'chip' + (state.category===c.value?' active':'');
+        div.textContent = c.label;
+        div.onclick = ()=>{ state.category = c.value; refresh(); };
+        catWrap.appendChild(div);
+      });
+      // sizes
+      const sizes = [...new Set(PRODUCTS.flatMap(p=>p.sizes))];
+      const sizeWrap = $('#sizeChips'); sizeWrap.innerHTML='';
+      [{label:'Any', value:null}, ...sizes.map(s=>({label:s, value:s}))].forEach(s=>{
+        const div = document.createElement('div');
+        div.className = 'chip' + (state.size===s.value?' active':'');
+        div.textContent = s.label;
+        div.onclick = ()=>{ state.size = s.value; refresh(); };
+        sizeWrap.appendChild(div);
+      });
+      // colors (swatches)
+      const colors = [...new Set(PRODUCTS.flatMap(p=>p.colors))];
+      const colorWrap = $('#colorSwatches'); colorWrap.innerHTML='';
+      [{name:'Any', value:null, css:'#999'} , ...colors.map(c=>({name:c, value:c, css:guessColor(c)}))]
+        .forEach(c=>{
+          const s = document.createElement('div');
+          s.className = 'swatch' + (state.color===c.value?' active':'');
+          s.title = c.name;
+          s.style.background = c.css;
+          s.onclick = ()=>{ state.color = c.value; refresh(); };
+          colorWrap.appendChild(s);
+        });
+      // price
+      const range = $('#priceRange');
+      range.value = state.maxPrice;
+      $('#priceLabel').textContent = `Up to $${Number(range.value).toFixed(0)}`;
+    }
+
+    function card(p){
+      const div = document.createElement('article');
+      div.className = 'card fade-in';
+      div.innerHTML = `
+        <img src="${p.image}" alt="${p.name}" loading="lazy"/>
+        <div class="p">
+          <div class="row"><strong>${p.name}</strong><span class="price">$${p.price.toFixed(2)}</span></div>
+          <div class="row"><span class="brandtxt">${p.brand} • ${p.category}</span><span class="stars">${'★'.repeat(Math.round(p.rating))}</span></div>
+          <div class="chips" style="margin:10px 0">${p.colors.map(c=>`<span class="badge">${c}</span>`).join('')}</div>
+          <div class="row" style="gap:8px">
+            <select class="size-select">
+              ${p.sizes.map(s=>`<option>${s}</option>`).join('')}
+            </select>
+            <button class="iconbtn secondary add-to-cart">Add</button>
+          </div>
+        </div>`;
+      div.querySelector('.add-to-cart').onclick = ()=>{
+        const size = div.querySelector('select').value;
+        addToCart(p.id, { size, color: p.colors[0] });
+      };
+      return div;
+    }
+
+    function render(list){
+      const wrap = $('#products');
+      wrap.innerHTML = '';
+      list.forEach(p=> wrap.appendChild(card(p)) );
+      setResultsCount(list.length);
+      buildBadges();
+    }
+
+    function buildBadges(){
+      const b = $('#badges');
+      const items = [];
+      if(state.query) items.push([`Search: "${state.query}"`, ()=>{state.query=''; refresh()}]);
+      if(state.category) items.push([`Category: ${state.category}`, ()=>{state.category=null; refresh()}]);
+      if(state.color) items.push([`Color: ${state.color}`, ()=>{state.color=null; refresh()}]);
+      if(state.size) items.push([`Size: ${state.size}`, ()=>{state.size=null; refresh()}]);
+      if(state.maxPrice<200) items.push([`≤ $${state.maxPrice}`, ()=>{state.maxPrice=200; refresh()}]);
+      b.innerHTML='';
+      items.forEach(([label, onX])=>{
+        const el = document.createElement('span');
+        el.className='badge';
+        el.innerHTML = `${label} <button class="iconbtn" style="padding:2px 8px; font-size:12px">✕</button>`;
+        el.querySelector('button').onclick = onX; b.appendChild(el);
+      });
+    }
+
+    // ---------- Filtering & Sorting ----------------------------------------
+    function applyFilters(){
+      let list = PRODUCTS.filter(p=> p.price <= state.maxPrice);
+      if(state.category) list = list.filter(p=> p.category===state.category);
+      if(state.color) list = list.filter(p=> p.colors.includes(state.color));
+      if(state.size) list = list.filter(p=> p.sizes.includes(state.size));
+      if(state.query){
+        const q = state.query.toLowerCase();
+        list = list.filter(p=> [p.name,p.brand,p.category].join(' ').toLowerCase().includes(q));
+      }
+      switch(state.sort){
+        case 'price-asc': list.sort((a,b)=>a.price-b.price); break;
+        case 'price-desc': list.sort((a,b)=>b.price-a.price); break;
+        case 'rating-desc': list.sort((a,b)=>b.rating-a.rating); break;
+        case 'newest': list.sort((a,b)=> new Date(b.added)-new Date(a.added)); break;
+        default: list.sort((a,b)=> b.rating - a.rating);
+      }
+      return list;
+    }
+
+    function refresh(){
+      buildFilters();
+      render(applyFilters());
+      updateCartUI();
+    }
+
+    // ---------- Cart Logic --------------------------------------------------
+    function addToCart(id, {size, color}){
+      const key = id + '|' + (size||'') + '|' + (color||'');
+      const item = state.cart[key] || { id, size, color, qty:0 };
+      item.qty += 1; state.cart[key] = item; persistCart(); updateCartUI();
+      // open cart for feedback
+      openCart();
+    }
+
+    function removeFromCart(key){ delete state.cart[key]; persistCart(); updateCartUI(); }
+    function changeQty(key, delta){ const it=state.cart[key]; if(!it) return; it.qty=Math.max(1, it.qty+delta); persistCart(); updateCartUI(); }
+    function clearCart(){ state.cart={}; persistCart(); updateCartUI(); }
+    function persistCart(){ localStorage.setItem('demo-cart', JSON.stringify(state.cart)); }
+
+    function cartItems(){ return Object.entries(state.cart).map(([key, it])=>({key, ...it, product: PRODUCTS.find(p=>p.id===it.id)})); }
+
+    function cartSubtotal(){ return cartItems().reduce((s, it)=> s + it.product.price * it.qty, 0); }
+
+    function updateCartUI(){
+      const list = $('#cartList'); list.innerHTML = '';
+      const items = cartItems();
+      $('#cartCount').textContent = items.reduce((s,it)=>s+it.qty,0);
+      if(items.length===0){ list.innerHTML = `<div class="empty">Your cart is empty</div>`; $('#subtotal').textContent = `$0.00`; return; }
+      items.forEach(it=>{
+        const row = document.createElement('div'); row.className='cart-item';
+        row.innerHTML = `
+          <img src="${it.product.image}" alt="${it.product.name}">
+          <div>
+            <div style="font-weight:700">${it.product.name}</div>
+            <div class="brandtxt">${it.color || ''} ${it.size ? '• ' + it.size : ''}</div>
+            <div style="margin-top:6px">$${it.product.price.toFixed(2)}</div>
+          </div>
+          <div class="qty">
+            <button aria-label="decrease">−</button>
+            <span>${it.qty}</span>
+            <button aria-label="increase">+</button>
+            <button aria-label="remove" title="Remove" style="margin-left:8px; background:var(--danger)">🗑</button>
+          </div>`;
+        const [dec, , inc, del] = row.querySelectorAll('button');
+        dec.onclick = ()=> changeQty(it.key, -1);
+        inc.onclick = ()=> changeQty(it.key, +1);
+        del.onclick = ()=> removeFromCart(it.key);
+        list.appendChild(row);
+      });
+      $('#subtotal').textContent = `$${cartSubtotal().toFixed(2)}`;
+    }
+
+    // ---------- Events ------------------------------------------------------
+    function openCart(){ $('#cart').classList.add('open'); }
+    function closeCart(){ $('#cart').classList.remove('open'); }
+
+    $('#openCart').onclick = openCart;
+    $('#closeCart').onclick = closeCart;
+
+    $('#checkoutBtn').onclick = ()=>{
+      alert('🎉 Demo checkout complete! (Cart cleared)');
+      clearCart(); closeCart();
+    };
+
+    $('#search').addEventListener('input', (e)=>{ state.query = e.target.value.trim(); render(applyFilters()); buildBadges(); });
+
+    $('#sort').addEventListener('change', (e)=>{ state.sort = e.target.value; refresh(); });
+
+    $('#priceRange').addEventListener('input', (e)=>{ state.maxPrice = Number(e.target.value); $('#priceLabel').textContent = `Up to $${state.maxPrice}`; render(applyFilters()); buildBadges(); });
+
+    $('#clearFilters').onclick = ()=>{ state.query=''; state.category=null; state.color=null; state.size=null; state.maxPrice=200; state.sort='recommend'; $('#search').value=''; refresh(); };
+
+    // Utility to guess CSS color from a name
+    function guessColor(name){
+      const n = name.toLowerCase();
+      const map = { black:'#111', white:'#ddd', volt:'#ccff00', navy:'#001f3f', maroon:'#6b0d0d', charcoal:'#333', olive:'#556b2f', tan:'#c8ad7f', sand:'#c2b280', brown:'#6b4423', forest:'#0b3d0b', rust:'#b7410e', sage:'#9caf88' };
+      return map[n] || '#888';
+    }
+
+    // ---------- Init --------------------------------------------------------
+    buildFilters();
+    render(applyFilters());
+    updateCartUI();
+  </script>
+</body>
+</html>
